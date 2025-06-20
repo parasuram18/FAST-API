@@ -3,8 +3,8 @@ from typing import Optional
 
 # for custom error response
 class ErrorRes(BaseModel):
-    status : str
-    message : str
+    status : Optional[str] = "error"
+    message : Optional[str] = "Something went wrong"
 
 # input for role entry
 class RoleInput(BaseModel):
@@ -14,7 +14,7 @@ class RoleInput(BaseModel):
 # rolemaster response
 class RoleRes(BaseModel):
     id : int
-    role : str
+    role_name : str
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -36,6 +36,7 @@ class RegisterUser(BaseModel):
     mobilenumber : str
     email : EmailStr
     password : str
+    # role
     address : address
 
 # user details response
@@ -44,4 +45,22 @@ class UserResponse(BaseModel):
     email : EmailStr
     mobilenumber : str
     
+    model_config = ConfigDict(from_attributes=True)
+
+class MapRole(BaseModel):
+    user : int
+    role : int
+
+class MapRes(BaseModel):
+    status : Optional[str] = "success"
+    message : Optional[str] = "User mappeed succesfully"
+
+# login input
+class Login(BaseModel):
+    username : str
+    password : str
+
+class Token(BaseModel):
+    access_token : str
+    token_type : str
     model_config = ConfigDict(from_attributes=True)

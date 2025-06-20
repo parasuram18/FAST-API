@@ -4,9 +4,10 @@ from sqlalchemy.orm import DeclarativeBase, mapped_column, Mapped, Relationship
 from datetime import datetime
 from sqlalchemy.dialects.postgresql import JSONB
 from pydantic import EmailStr
-import bcrypt, base64
-from argon2 import PasswordHasher
 from typing import Optional
+
+from passlib.context import CryptContext
+pwd_context = CryptContext(schemes=["argon2"], deprecated="auto")
 
 # Base class for SQLalchemy
 class Base(DeclarativeBase):
@@ -46,17 +47,11 @@ class CustomUser(Base, TimeStamp):
     profile : Mapped[Optional['UserPersonalProfile']] = Relationship(uselist=False, lazy='selectin')
     roles = Relationship('RoleMapping', lazy='selectin')
 
-    def set_password(self, psw):
-        ph = PasswordHasher()
-        self.password = ph.hash(psw)
+    def set_password(self, password):
+        self.password = pwd_context.hash(password)
     
-    def check_password(self, psw):
-        ph = PasswordHasher()
-        try:
-            isvalid = ph.verify(self.password, psw)
-        except:
-            isvalid = False
-        return isvalid
+    def check_password(self, raw):
+        return pwd_context.verify(raw, self.password)
 
 
 class UserPersonalProfile(Base):
@@ -76,3 +71,7 @@ class RoleMapping(Base):
     
     role = Column(Integer, ForeignKey('role_master.id'), nullable=True)
     user = Column(Integer, ForeignKey('custom_user.id'), nullable=True)
+
+    __table_args__ = (
+        UniqueConstraint('role', 'user', name='unique_mapping'),
+    )
